@@ -39,7 +39,7 @@ export const projects: Project[] = [
     id: 'miles', number: '03', title: 'Miles Tracker', kicker: 'AI-assisted product',
     category: ['AI', 'Product'],
     summary: 'A Telegram Mini App prototype for tracking card miles, spending caps, and researched rate changes.',
-    detail: 'A React frontend, Express API, Prisma data model, calculation engine, Telegram bot, and Claude-assisted research flow form the prototype. Suggested rate changes enter an administrator review queue. Seed card terms are historical and require verification before use.',
+    detail: 'A React frontend, Express API, Prisma data model, calculation engine, Telegram bot, and Claude-assisted research flow form the prototype. Suggested rate changes enter an administrator review queue. Seed card terms are historical, and the current cap estimates are conservative; both require verification before use.',
     contribution: 'Full-stack application with reviewable AI suggestions and tested calculation logic.',
     technologies: ['React', 'TypeScript', 'Prisma', 'Telegram', 'Claude API'],
     source: 'https://github.com/ivanaitzliddat/miles', theme: 'miles', status: 'Prototype · no live service',
