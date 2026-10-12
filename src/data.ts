@@ -90,4 +90,3 @@ export const experience = [
   { period: 'Jan - May 2024', title: 'Cybersecurity Engineer Intern', organization: 'GovTech Singapore', upcoming: false, description: 'IoT security testing, network traffic analysis, firmware reverse engineering, and a remote device-testing harness integrating hardware and software.' },
   { period: 'May - Oct 2022', title: 'Information Security Intern', organization: 'Singapore Airlines / Scoot', upcoming: false, description: 'Security dashboards, phishing awareness, endpoint and email security, Splunk rules, and incident-response procedures.' },
 ]
-

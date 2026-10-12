@@ -47,6 +47,8 @@ jobs:
           }
           const output = files('docs');
           if (output.some(file => file !== 'docs/.nojekyll' && !/\.(html|js|css)$/.test(file))) throw new Error('Unexpected public asset');
+          const html = fs.readFileSync('docs/index.html', 'utf8').split('\n').map(line => line.replace(/[ \t\r]+$/, '')).join('\n').trimEnd() + '\n';
+          fs.writeFileSync('docs/index.html', html);
           const text = output.map(file => fs.readFileSync(file, 'utf8')).join('\n');
           if (!text.includes('Understand the threat.')) throw new Error('Expected redesigned content is missing');
           if (/ADAM|Ticketing Hub|STANDCON|ExzenHQ|cydef|raid-ppcoe|202-innovation/i.test(text)) throw new Error('Uncleared project identifier in public output');
@@ -104,4 +106,3 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '.status'
-
