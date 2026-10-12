@@ -1,197 +1,151 @@
-import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, MotionConfig, motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Github, MoveUpRight, ScanLine, ShieldCheck, Sparkles, X } from 'lucide-react'
-import { projects, type Category, type Project } from './data'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { MotionConfig, motion, useReducedMotion } from 'motion/react'
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Code2, ExternalLink, FlaskConical, Github, Linkedin, Mail, ScanLine, ShieldCheck, Workflow, X } from 'lucide-react'
+import { experience, projects, supportingProjects, type Category, type Project } from './data'
 
 type Filter = 'All' | Category
-const filters: Filter[] = ['All', 'Security', 'AI', 'Product']
-
-function Reveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const reduce = useReducedMotion()
-  return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : { opacity: 0, y: 28 }}
-      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
-    >{children}</motion.div>
-  )
+const filters: Filter[] = ['All', 'Security', 'AI', 'Engineering']
+const focusCopy: Record<Filter, string> = {
+  All: 'Three public implementations. Problems, decisions, and evidence you can inspect.',
+  Security: 'Security-minded evaluation: inspect the data and test the assumptions.',
+  AI: 'From model evaluation to local OCR and human-reviewed AI suggestions.',
+  Engineering: 'Operational workflows, explicit access boundaries, and reviewable state changes.',
 }
 
-function ProjectArt({ project }: { project: Project }) {
-  return (
-    <div className={`project-art art-${project.theme}`} aria-hidden="true">
-      <span className="art-index">{project.number} / SELECTED WORK</span>
-      {project.theme === 'vision' && <div className="vision-target"><span className="vision-corner tl"/><span className="vision-corner tr"/><span className="vision-corner bl"/><span className="vision-corner br"/><div className="vision-line"/><ScanLine size={34}/><span className="vision-detection">OCR DETECTED</span></div>}
-      {project.theme === 'signal' && <div className="signal-stack"><span>URL ANALYSIS</span><div className="signal-bars"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div><strong>0.92</strong><small>RISK SIGNAL</small></div>}
-      {project.theme === 'miles' && <div className="miles-art"><div className="miles-orbit one"/><div className="miles-orbit two"/><strong>✦</strong><span>POINTS → POSSIBILITIES</span></div>}
-      {project.theme === 'quiz' && <div className="quiz-art"><span className="quiz-ring ring-a"/><span className="quiz-ring ring-b"/><span className="quiz-ring ring-c"/><strong>YOUR<br/>PERSPECTIVE</strong></div>}
-      {project.theme === 'games' && <div className="games-art"><span className="playing-card back">A</span><span className="playing-card front">♠<small>RIDE THE BUS</small></span></div>}
-      {project.theme === 'travel' && <div className="travel-art"><span className="travel-route"/><span className="travel-dot start"/><span className="travel-dot end"/><strong>TOGETHER,<br/>BETTER.</strong></div>}
-      <span className="art-bottom">{project.kicker.toUpperCase()}</span>
+function readLocation() {
+  const query = new URLSearchParams(window.location.search)
+  return {
+    filter: filters.find(item => item.toLowerCase() === query.get('focus')) ?? 'All',
+    project: projects.find(item => item.id === query.get('project')) ?? null,
+  }
+}
+
+function updateLocation(filter: Filter, project: Project | null) {
+  const url = new URL(window.location.href)
+  if (filter === 'All') url.searchParams.delete('focus')
+  else url.searchParams.set('focus', filter.toLowerCase())
+  if (project) url.searchParams.set('project', project.id)
+  else url.searchParams.delete('project')
+  window.history.replaceState(null, '', url)
+}
+
+function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
+  const reduce = useReducedMotion()
+  return <motion.div className={className} initial={reduce ? false : { opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.45 }}>{children}</motion.div>
+}
+
+function SystemMap() {
+  return <div className="system-map" aria-label="Illustrative engineering approach: observe, evaluate, review, operate">
+    <div className="map-topline"><span>ENGINEERING APPROACH</span><span>01 / 04</span></div>
+    <div className="map-graph" aria-hidden="true">
+      <svg className="map-links" viewBox="0 0 440 270" fill="none"><path d="M95 57H212V125H345M95 213H212V125"/><path d="M345 125V213H292" strokeDasharray="4 5"/><circle cx="212" cy="125" r="5"/></svg>
+      <div className="map-node node-observe"><ScanLine size={19}/><span>01 / OBSERVE</span><strong>Find the signal</strong></div>
+      <div className="map-node node-evaluate"><FlaskConical size={19}/><span>02 / EVALUATE</span><strong>Test assumptions</strong></div>
+      <div className="map-node node-review"><ShieldCheck size={19}/><span>03 / REVIEW</span><strong>Keep it inspectable</strong></div>
+      <div className="map-output"><Workflow size={17}/><span>04 / OPERATE</span></div>
     </div>
-  )
+    <div className="map-code" aria-hidden="true"><span className="code-comment">// Useful systems need clear boundaries.</span><code><span>if</span> (evidence.is_reviewable) {'{'}<br/><i>ship_with_limits();</i><br/>{'}'}</code></div>
+    <p className="map-caption">A design principle, not a production-system diagram.</p>
+  </div>
+}
+
+function ProjectVisual({ theme }: { theme: Project['theme'] }) {
+  if (theme === 'signal') return <div className="project-visual visual-signal" aria-hidden="true">
+    <div className="visual-topline"><FlaskConical size={16}/><span>EVALUATION DESIGN</span></div>
+    <div className="dataset"><span className="dataset-label">HOST-GROUPED DATA</span><div className="dataset-cells">{Array.from({ length: 30 }, (_, i) => <i key={i} className={i < 18 ? 'train' : i < 24 ? 'validate' : 'test'}/>)}</div></div>
+    <div className="split-labels"><span><i/> Train</span><span><i/> Validate</span><span><i/> Test</span></div>
+    <div className="visual-divider"><ArrowDownRight size={18}/><span>NO HOST OVERLAP</span></div>
+    <div className="evaluation-flow"><span>Compare models</span><ArrowRight size={14}/><span>Select threshold</span><ArrowRight size={14}/><strong>Holdout</strong></div>
+    <p>Split carefully. Select on validation.<br/>Report what does not generalize.</p>
+  </div>
+  if (theme === 'vision') return <div className="project-visual visual-vision" aria-hidden="true">
+    <div className="visual-topline"><ScanLine size={16}/><span>ILLUSTRATIVE OCR WORKFLOW</span></div>
+    <div className="ocr-frame"><div className="ocr-row"><span>STATUS</span><span className="ocr-match">REVIEW NEEDED</span></div><div className="ocr-row"><span>SOURCE</span><span>DEMO FEED</span></div><div className="scan-rule"/><span className="ocr-corner one"/><span className="ocr-corner two"/></div>
+    <div className="capture-flow"><span>Capture</span><ArrowRight size={14}/><span>Match</span><ArrowRight size={14}/><span>Acknowledge</span></div>
+    <p>Local processing. Bounded retention.<br/>Evidence an operator can inspect.</p>
+  </div>
+  return <div className="project-visual visual-review" aria-hidden="true">
+    <div className="visual-topline"><Workflow size={16}/><span>ILLUSTRATIVE REVIEW FLOW</span></div>
+    <div className="review-stages"><div><Code2 size={17}/><span>Structured suggestion</span><small>AI-assisted research</small></div><ArrowDownRight size={18}/><div><ShieldCheck size={17}/><span>Human approval</span><small>Authorization + transaction</small></div></div>
+    <p>The model proposes.<br/>A verified reviewer decides.</p>
+  </div>
 }
 
 function ProjectCard({ project, onOpen }: { project: Project; onOpen: (project: Project, trigger: HTMLButtonElement) => void }) {
-  const reduce = useReducedMotion()
-  return (
-    <motion.article
-      layout={!reduce}
-      className="project-card"
-      initial={reduce ? false : { opacity: 0, y: 22, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={reduce ? undefined : { opacity: 0, y: -14, scale: 0.98 }}
-      transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduce ? undefined : { y: -6 }}
-    >
-      <ProjectArt project={project} />
-      <div className="project-info">
-        <div className="project-topline"><span>{project.kicker}</span><span>{project.number}</span></div>
-        <h3>{project.title}</h3>
-        <p>{project.summary}</p>
-        <div className="project-tags">{project.technologies.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}</div>
-        <div className="project-foot">
-          <button className="detail-button" type="button" onClick={(event) => onOpen(project, event.currentTarget)}>Explore project <ArrowUpRight size={17} aria-hidden="true" /></button>
-          <span className="project-status">{project.status ?? 'Public source'}</span>
-        </div>
-      </div>
-    </motion.article>
-  )
+  return <article className={`project-card ${project.theme === 'signal' ? 'project-featured' : ''}`}>
+    <ProjectVisual theme={project.theme}/>
+    <div className="project-copy">
+      <div className="project-topline"><span>{project.number} / {project.label}</span><span className="status-pill">{project.status}</span></div>
+      <h3>{project.title}</h3><p className="project-question">{project.question}</p><p className="project-summary">{project.summary}</p>
+      <div className="project-tags">{project.technologies.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}</div>
+      <div className="project-actions"><button type="button" onClick={event => onOpen(project, event.currentTarget)}>Explore the case study <ArrowUpRight size={17} aria-hidden="true"/></button><a href={project.source} target="_blank" rel="noopener noreferrer" aria-label={`View ${project.title} source on GitHub`}><Github size={17} aria-hidden="true"/> Source</a></div>
+    </div>
+  </article>
 }
 
-function ProjectDialog({ project, onClose }: { project: Project; onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement>(null)
-  const dialogRef = useRef<HTMLElement>(null)
+function ProjectDialog({ project, onClose }: { project: Project | null; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => {
-    closeRef.current?.focus()
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-      if (event.key !== 'Tab' || !dialogRef.current) return
-      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')]
-      if (!focusable.length) return
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
-    }
-    document.addEventListener('keydown', handleKey)
+    const dialog = ref.current
+    if (!dialog) return
+    if (project && !dialog.open) { dialog.scrollTop = 0; dialog.showModal() }
+    else if (!project && dialog.open) dialog.close()
+    if (!project) return
+    const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', handleKey); document.body.style.overflow = '' }
-  }, [onClose])
-
-  return (
-    <motion.div className="dialog-backdrop" role="presentation" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <motion.section
-        ref={dialogRef}
-        className="project-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="dialog-title"
-        aria-describedby="dialog-description"
-        initial={{ opacity: 0, y: 28, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 320, damping: 34 }}
-      >
-        <button className="dialog-close" type="button" onClick={onClose} ref={closeRef} aria-label="Close project details"><X size={22}/></button>
-        <ProjectArt project={project} />
-        <div className="dialog-copy">
-          <p className="eyebrow">PROJECT {project.number} / {project.kicker}</p>
-          <h2 id="dialog-title">{project.title}</h2>
-          <p id="dialog-description" className="dialog-lead">{project.detail}</p>
-          <div className="dialog-section"><span>FOCUS</span><p>{project.contribution}</p></div>
-          <div className="dialog-section"><span>BUILT WITH</span><div className="dialog-tags">{project.technologies.map(tag => <span key={tag}>{tag}</span>)}</div></div>
-          <div className="dialog-actions">
-            <a className="button button-accent" href={project.source} target="_blank" rel="noopener noreferrer">View source <Github size={17} aria-hidden="true" /></a>
-            {project.demo && <a className="button button-outline" href={project.demo} target="_blank" rel="noopener noreferrer">Open demo <ArrowUpRight size={17} aria-hidden="true" /></a>}
-          </div>
-        </div>
-      </motion.section>
-    </motion.div>
-  )
+    return () => { document.body.style.overflow = previous }
+  }, [project])
+  return <dialog ref={ref} className="project-dialog" aria-labelledby="case-title" aria-describedby="case-question" onCancel={event => { event.preventDefault(); onClose() }} onClick={event => { if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose() } }}>
+    {project && <>
+      <div className="dialog-head"><span>{project.number} / PROJECT NOTES</span><button type="button" onClick={onClose} aria-label="Close case study" autoFocus><X size={20}/></button></div>
+      <div className="dialog-body"><p className="eyebrow">{project.label}</p><h2 id="case-title">{project.title}</h2><p id="case-question" className="dialog-question">{project.question}</p><p className="dialog-summary">{project.summary}</p>
+        <section className="case-section"><h3>My implementation</h3><p>{project.contribution}</p></section>
+        <section className="case-section"><h3>Technical decisions</h3><ol>{project.decisions.map(item => <li key={item}>{item}</li>)}</ol></section>
+        <section className="case-section"><h3>What you can inspect</h3><p>{project.evidence}</p><a className="inline-link" href={project.evidenceSource} target="_blank" rel="noopener noreferrer">Inspect implementation evidence <ArrowUpRight size={15} aria-hidden="true"/></a></section>
+        <section className="case-section case-limits"><h3>Boundaries, not fine print</h3><p>{project.limitation}</p><div><span>NEXT VALIDATION</span><p>{project.next}</p></div></section>
+        <div className="dialog-actions"><a className="button button-primary" href={project.source} target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true"/> View repository</a><a className="inline-link" href={`?project=${project.id}`}>Case-study permalink <ExternalLink size={14} aria-hidden="true"/></a></div>
+      </div>
+    </>}
+  </dialog>
 }
 
 function App() {
-  const [filter, setFilter] = useState<Filter>('All')
-  const [selected, setSelected] = useState<Project | null>(null)
-  const triggerRef = useRef<HTMLButtonElement | null>(null)
-  const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll()
-  const heroY = useTransform(scrollYProgress, [0, 0.4], [0, -90])
-  const visibleProjects = projects.filter(project => filter === 'All' || project.category.includes(filter))
-  const openProject = (project: Project, trigger: HTMLButtonElement) => { triggerRef.current = trigger; setSelected(project) }
-  const closeProject = () => { setSelected(null); window.setTimeout(() => triggerRef.current?.focus(), 0) }
+  const [filter, setFilter] = useState<Filter>(() => readLocation().filter)
+  const [selected, setSelected] = useState<Project | null>(() => readLocation().project)
+  const trigger = useRef<HTMLButtonElement | null>(null)
+  const openProject = (project: Project, button: HTMLButtonElement) => { trigger.current = button; setSelected(project); updateLocation(filter, project) }
+  const closeProject = useCallback(() => {
+    setSelected(null); updateLocation(filter, null)
+    window.setTimeout(() => (trigger.current ?? document.querySelector<HTMLButtonElement>('.filter-button.active'))?.focus(), 0)
+  }, [filter])
+  useEffect(() => {
+    const onPopState = () => { const state = readLocation(); setFilter(state.filter); setSelected(state.project) }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+  const visible = projects.filter(project => filter === 'All' || project.category.includes(filter))
 
-  return (
-    <MotionConfig reducedMotion="user">
-      <div className="site-wrap" id="top">
-        <motion.div className="reading-progress" style={{ scaleX: scrollYProgress }} aria-hidden="true" />
-        <a className="skip-link" href="#main">Skip to content</a>
-        <header className="site-header">
-          <div className="shell header-inner">
-            <a className="brand" href="#top" aria-label="Ivan Tan, back to top"><span className="brand-symbol">i<span>.</span></span><span>Ivan Tan</span></a>
-            <nav aria-label="Main navigation"><a href="#work">Work</a><a href="#approach">Approach</a><a href="#about">About</a></nav>
-            <a className="header-link" href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={16} aria-hidden="true" /></a>
-          </div>
-        </header>
+  return <MotionConfig reducedMotion="user"><div className="site-wrap" id="top">
+    <a className="skip-link" href="#main">Skip to content</a>
+    <header className="site-header"><div className="shell header-inner"><a className="brand" href="#top" aria-label="Ivan Tan, back to top"><span className="brand-mark">it<span>_</span></span><span>Ivan Tan</span></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#background">Background</a><a href="#contact">Contact</a></nav><a className="header-github" href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer" aria-label="Ivan Tan on GitHub"><Github size={19}/><ArrowUpRight size={13}/></a></div></header>
+    <main id="main">
+      <section className="hero shell" aria-labelledby="hero-title"><div className="hero-copy"><Reveal><p className="eyebrow"><span className="location-dot"/> SINGAPORE / CYBERSECURITY + APPLIED AI</p><h1 id="hero-title">Understand the threat.<br/><em>Build the system.</em><br/>Test the assumptions.</h1><p className="hero-lede">I'm Ivan Tan. A Network Lead and cybersecurity engineer moving into AI engineering. I build around observable behavior, explicit trust boundaries, and evidence people can inspect.</p><div className="hero-actions"><a className="button button-primary" href="#work">Explore selected work <ArrowDownRight size={18} aria-hidden="true"/></a><a className="inline-link" href="https://www.linkedin.com/in/tan-ivan/" target="_blank" rel="noopener noreferrer">LinkedIn <ArrowUpRight size={16} aria-hidden="true"/></a></div><div className="hero-credentials"><span><ShieldCheck size={15} aria-hidden="true"/> OSCP</span><span>NUS Information Security</span><span>2024 Valedictorian</span></div></Reveal></div><Reveal className="hero-system"><SystemMap/></Reveal></section>
+      <div className="positioning-strip"><div className="shell"><p><span>NOW</span> Network Lead + Cybersecurity Engineer</p><p><span>NEXT</span> AI Engineer <small>/ Jan 2027</small></p></div></div>
 
-        <main id="main">
-          <section className="hero shell" aria-labelledby="hero-title">
-            <div className="hero-copy">
-              <Reveal><p className="eyebrow hero-eyebrow"><span className="pulse-dot"/> SECURITY × AI × SOFTWARE</p></Reveal>
-              <Reveal delay={0.08}><h1 id="hero-title">Systems that <em>see</em> clearly.<br/>Ideas that <em>hold up.</em></h1></Reveal>
-              <Reveal delay={0.16}><p className="hero-lede">I’m Ivan, an OSCP-certified cybersecurity graduate moving into AI engineering. I build software that makes complex signals useful, reviewable, and human.</p></Reveal>
-              <Reveal className="hero-actions" delay={0.24}>
-                <a className="button button-accent" href="#work">Explore the work <ArrowDownRight size={18} aria-hidden="true" /></a>
-                <a className="text-link" href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer">Browse GitHub <MoveUpRight size={17} aria-hidden="true" /></a>
-              </Reveal>
-              <Reveal className="hero-micro" delay={0.32}><span>01 — OBSERVE</span><span>02 — REASON</span><span>03 — BUILD</span></Reveal>
-            </div>
-            <motion.div className="hero-visual" style={{ y: reduce ? undefined : heroY }} aria-hidden="true">
-              <div className="hero-grid"/>
-              <motion.div className="orbit orbit-one" animate={reduce ? undefined : { rotate: 360 }} transition={{ duration: 42, ease: 'linear', repeat: Infinity }}/>
-              <motion.div className="orbit orbit-two" animate={reduce ? undefined : { rotate: -360 }} transition={{ duration: 56, ease: 'linear', repeat: Infinity }}/>
-              <div className="hero-core"><div className="core-mark"><ScanLine size={39} strokeWidth={1.45}/></div><span>SIGNAL → INSIGHT</span></div>
-              <motion.div className="visual-chip chip-a" animate={reduce ? undefined : { y: [0, -10, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}><ShieldCheck size={17}/> SECURE BY DESIGN</motion.div>
-              <motion.div className="visual-chip chip-b" animate={reduce ? undefined : { y: [0, 9, 0] }} transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}><Sparkles size={17}/> HUMAN IN THE LOOP</motion.div>
-              <span className="visual-cross cross-a">+</span><span className="visual-cross cross-b">+</span>
-            </motion.div>
-          </section>
+      <section className="work-section shell" id="work" aria-labelledby="work-title"><Reveal className="section-heading"><div><p className="eyebrow">01 / PUBLIC IMPLEMENTATIONS</p><h2 id="work-title">The work.<br/><em>And the reasoning behind it.</em></h2></div><p>Security and AI are useful together when the evaluation is as thoughtful as the implementation.</p></Reveal><div className="filter-row" role="group" aria-label="Filter selected projects">{filters.map(item => <button key={item} type="button" className={`filter-button ${filter === item ? 'active' : ''}`} aria-pressed={filter === item} onClick={() => { setFilter(item); updateLocation(item, selected) }}>{item === 'All' ? 'All work' : item}<span>{projects.filter(project => item === 'All' || project.category.includes(item)).length.toString().padStart(2, '0')}</span></button>)}</div><p className="focus-copy" aria-live="polite">{focusCopy[filter]}</p><div className="project-grid">{visible.map(project => <ProjectCard key={project.id} project={project} onOpen={openProject}/>)}</div><p className="evidence-note"><Check size={15} aria-hidden="true"/> Public source is linked. Project notes distinguish implementation, verification, and next validation.</p>
+        <div className="supporting-work"><div className="supporting-heading"><h3>Beyond the selected work</h3><span>SUPPORTING ENGINEERING</span></div>{supportingProjects.map(project => <a key={project.title} href={project.source} target="_blank" rel="noopener noreferrer"><div><strong>{project.title}</strong><p>{project.description}</p></div><span className="supporting-tags">{project.tags}</span><span className="supporting-status">{project.status}</span><ArrowUpRight size={17} aria-hidden="true"/></a>)}</div>
+      </section>
 
-          <div className="hero-bottom shell"><span>SELECTED PROJECTS ↓</span><span>BUILT WITH CURIOSITY, TESTED WITH CARE</span></div>
+      <section className="research-section" aria-labelledby="research-title"><div className="shell research-layout"><Reveal><p className="eyebrow">02 / RESEARCH FOUNDATION</p><h2 id="research-title">Security knowledge.<br/><em>A sharper lens for AI.</em></h2><p className="research-intro">My NUS final-year research examined ChatGPT for cyber threat-intelligence question-answering, alongside study of adversarial techniques across IT and OT.</p></Reveal><Reveal className="research-note"><div className="note-topline"><FlaskConical size={18} aria-hidden="true"/><span>RESEARCH OVERVIEW / 2024</span></div><h3>LLMs for Cyber Threat Intelligence</h3><p>Exploring how well a language model answers questions about threat-intelligence reports, informed by MITRE ATT&CK and security-domain research.</p><div className="research-boundary"><span>SCOPE OF THIS OVERVIEW</span><p>Career and research background from my resume. The original report and evaluation artifacts are not published here; no benchmark result or deployed-system claim is implied.</p></div><a className="inline-link" href="https://www.linkedin.com/in/tan-ivan/" target="_blank" rel="noopener noreferrer">View professional background <ArrowUpRight size={15} aria-hidden="true"/></a></Reveal></div></section>
 
-          <section className="work-section shell" id="work" aria-labelledby="work-title">
-            <Reveal className="section-heading"><div><p className="eyebrow">01 / THE WORK</p><h2 id="work-title">Built to be explored.</h2></div><p>Public source projects across security, applied AI, and product engineering. Every link leads to a repository I’ve reviewed for this portfolio.</p></Reveal>
-            <div className="filter-row" role="group" aria-label="Filter projects">
-              {filters.map(item => <button key={item} className={`filter-button ${filter === item ? 'active' : ''}`} type="button" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === 'All' ? 'All work' : item}<span>{item === 'All' ? projects.length.toString().padStart(2, '0') : projects.filter(p => p.category.includes(item)).length.toString().padStart(2, '0')}</span></button>)}
-            </div>
-            <motion.div className="project-grid" layout={!reduce}>
-              <AnimatePresence mode="popLayout">{visibleProjects.map(project => <ProjectCard key={project.id} project={project} onOpen={openProject}/>)}</AnimatePresence>
-            </motion.div>
-            <p className="work-note">Projects under private review stay off this page until their public versions are ready.</p>
-          </section>
+      <section className="background-section shell" id="background" aria-labelledby="background-title"><Reveal className="section-heading"><div><p className="eyebrow">03 / BACKGROUND</p><h2 id="background-title">Built from security.<br/><em>Grounded in operations.</em></h2></div><p>Experience investigating systems and operating networks shapes how I approach engineering.</p></Reveal><div className="background-layout"><div className="experience-list">{experience.map(role => <Reveal key={role.title} className={`experience-row ${role.upcoming ? 'upcoming-role' : ''}`}><div className="experience-meta"><span>{role.period}</span><span>{role.organization}</span></div><h3>{role.title}{role.upcoming && <small>UPCOMING</small>}</h3><p>{role.description}</p></Reveal>)}</div><aside className="foundation"><p className="eyebrow">FOUNDATION</p><div className="foundation-credential"><ShieldCheck size={24} aria-hidden="true"/><div><strong>OSCP</strong><span>Offensive Security Certified Professional</span></div></div><div className="foundation-academic"><h3>National University<br/>of Singapore</h3><p>Bachelor of Computing<br/>Information Security<br/>First Class Honours</p><dl><div><dt>GPA</dt><dd>4.87 / 5.0</dd></div><div><dt>Class of 2024</dt><dd>Valedictorian</dd></div><div><dt>Recognition</dt><dd>Four Dean's Lists<br/>CSA Book Prize</dd></div></dl></div><div className="community-note"><span>COMMUNITY</span><p>Cybersecurity writing through N0H4TS. I value making technical work understandable, not just executable.</p></div></aside></div></section>
 
-          <section className="approach-section" id="approach" aria-labelledby="approach-title"><div className="shell approach-inner">
-            <Reveal><p className="eyebrow">02 / HOW I WORK</p><h2 id="approach-title">Curious about the edge cases.<br/><em>Clear about the evidence.</em></h2></Reveal>
-            <div className="approach-grid">
-              <Reveal className="approach-item" delay={0.05}><span className="approach-num">01</span><ShieldCheck size={28} strokeWidth={1.6}/><h3>Security thinking</h3><p>My OSCP background keeps trust boundaries, failure modes, and verification close to the design.</p></Reveal>
-              <Reveal className="approach-item" delay={0.12}><span className="approach-num">02</span><Sparkles size={28} strokeWidth={1.6}/><h3>AI with review</h3><p>I care about evaluation, source quality, and giving people a way to inspect the system’s suggestions.</p></Reveal>
-              <Reveal className="approach-item" delay={0.19}><span className="approach-num">03</span><ArrowRight size={28} strokeWidth={1.6}/><h3>Useful interfaces</h3><p>The best implementation makes the next action obvious, especially when the underlying workflow is complex.</p></Reveal>
-            </div>
-          </div></section>
+      <section className="direction-section shell" aria-labelledby="direction-title"><div><p className="eyebrow">04 / NEXT DIRECTION</p><h2 id="direction-title">More evidence.<br/>Not more buzzwords.</h2></div><div><p>I'm interested in security-focused AI evaluation and tools that make operational decisions easier to inspect.</p><p className="direction-detail">Potential next work: synthetic CTF scenarios paired with defensive fixes and regression tests. This is a planned direction, not an implemented challenge collection.</p></div></section>
 
-          <section className="about-section shell" id="about" aria-labelledby="about-title"><Reveal className="about-grid"><div><p className="eyebrow">03 / ABOUT</p><h2 id="about-title">Where security meets building.</h2></div><div><p>I work across cybersecurity and software engineering, with a growing focus on AI systems. My portfolio includes visual monitoring, security ML, human-reviewed agents, and full-stack prototypes.</p><p>Each repository explains what is implemented and where the limits are. I value that distinction because useful software earns trust through evidence.</p><a className="text-link about-link" href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer">Follow the work on GitHub <ArrowUpRight size={17}/></a></div></Reveal></section>
-
-          <section className="contact-section"><div className="shell contact-inner"><Reveal><p className="eyebrow">04 / CONNECT</p><h2>Let’s make complex things<br/><em>clearer.</em></h2><p>Explore the code, follow the projects, or get in touch through GitHub.</p><a className="button button-dark" href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer">Visit GitHub <Github size={18}/></a></Reveal><span className="contact-glyph" aria-hidden="true">↗</span></div></section>
-        </main>
-
-        <footer className="site-footer"><div className="shell footer-inner"><span>© {new Date().getFullYear()} Ivan Tan</span><span>Security · AI · Software</span><a href="#top">Back to top ↑</a></div></footer>
-        <AnimatePresence>{selected && <ProjectDialog key={selected.id} project={selected} onClose={closeProject}/>}</AnimatePresence>
-      </div>
-    </MotionConfig>
-  )
+      <section className="contact-section" id="contact" aria-labelledby="contact-title"><div className="shell contact-inner"><div><p className="eyebrow">05 / LET'S CONNECT</p><h2 id="contact-title">Building where<br/><em>security meets AI?</em></h2><p>Let's discuss the systems, the tradeoffs, and what your team needs next.</p></div><div className="contact-links"><a href="https://www.linkedin.com/in/tan-ivan/" target="_blank" rel="noopener noreferrer"><Linkedin size={19} aria-hidden="true"/><span>Connect on LinkedIn</span><ArrowUpRight size={18} aria-hidden="true"/></a><a href="mailto:ivanaitzliddat@gmail.com"><Mail size={19} aria-hidden="true"/><span>Email Ivan</span><ArrowUpRight size={18} aria-hidden="true"/></a><a href="https://github.com/ivanaitzliddat" target="_blank" rel="noopener noreferrer"><Github size={19} aria-hidden="true"/><span>Explore GitHub</span><ArrowUpRight size={18} aria-hidden="true"/></a></div></div></section>
+    </main><footer className="shell footer-inner"><span>Ivan Tan / Singapore</span><span>Security foundations. Applied AI. Clear evidence.</span><a href="#top">Back to top <ArrowUpRight size={13} aria-hidden="true"/></a></footer><ProjectDialog project={selected} onClose={closeProject}/>
+  </div></MotionConfig>
 }
 
 export default App
+

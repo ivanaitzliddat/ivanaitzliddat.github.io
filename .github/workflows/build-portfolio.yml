@@ -1,0 +1,107 @@
+name: Build and publish portfolio
+
+on:
+  push:
+    branches: [main, portfolio-cyber-ai]
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'vite.config.ts'
+      - '.github/workflows/build-portfolio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Type check and build
+        run: npm run build
+      - name: Validate the public bundle
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          function files(dir) {
+            return fs.readdirSync(dir, {withFileTypes: true}).flatMap(entry =>
+              entry.isDirectory() ? files(path.join(dir, entry.name)) : [path.join(dir, entry.name)]);
+          }
+          const output = files('docs');
+          if (output.some(file => !/\.(html|js|css)$/.test(file))) throw new Error('Unexpected public asset');
+          const text = output.map(file => fs.readFileSync(file, 'utf8')).join('\n');
+          if (!text.includes('Understand the threat.')) throw new Error('Expected redesigned content is missing');
+          if (/ADAM|Ticketing Hub|STANDCON|ExzenHQ|cydef|raid-ppcoe|202-innovation/i.test(text)) throw new Error('Uncleared project identifier in public output');
+          fs.writeFileSync('docs/.nojekyll', '');
+          fs.writeFileSync('docs/build.json', JSON.stringify({sourceCommit: process.env.SOURCE_SHA, builtAt: new Date().toISOString()}) + '\n');
+          console.log('Validated redesigned content and public asset boundaries.');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-docs
+          path: docs/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Remove the previous generated bundle
+        run: git rm -r --ignore-unmatch docs
+      - uses: actions/download-artifact@v4
+        with:
+          name: portfolio-docs
+          path: docs/
+      - name: Confirm existing Pages source and reject stale builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.source' > /tmp/portfolio-pages-source.json
+          node -e "const source=require('/tmp/portfolio-pages-source.json'); if(source.branch !== 'main' || source.path !== '/docs') throw Error('Expected existing main/docs Pages source; no settings changed');"
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$SOURCE_SHA"
+      - name: Commit only the generated site
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- docs
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build reviewed cyber and AI portfolio'
+            git push origin HEAD:main
+          fi
+      - name: Request a branch-based Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '.status'
+

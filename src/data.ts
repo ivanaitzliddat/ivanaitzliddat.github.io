@@ -1,75 +1,93 @@
-export type Category = 'Security' | 'AI' | 'Product'
+export type Category = 'Security' | 'AI' | 'Engineering'
 
 export type Project = {
   id: string
   number: string
   title: string
-  kicker: string
+  label: string
   category: Category[]
+  question: string
   summary: string
-  detail: string
   contribution: string
+  decisions: string[]
+  evidence: string
+  limitation: string
   technologies: string[]
   source: string
-  demo?: string
-  theme: 'vision' | 'signal' | 'miles' | 'quiz' | 'games' | 'travel'
-  status?: string
+  evidenceSource: string
+  theme: 'signal' | 'vision' | 'review'
+  status: string
+  next: string
 }
 
 export const projects: Project[] = [
   {
-    id: 'framevigil', number: '01', title: 'FrameVigil', kicker: 'Visual intelligence',
-    category: ['Security', 'AI'],
-    summary: 'A local monitor that watches camera and capture-card feeds for configured text and colour signals.',
-    detail: 'FrameVigil turns video inputs into reviewable alerts. Device discovery, feed configuration, OCR and colour detection, screenshot evidence, and acknowledgement rules are presented through a browser interface. Hardware validation remains a next step.',
-    contribution: 'Independent implementation of a configurable visual-alert workflow.',
-    technologies: ['Python', 'OCR', 'Computer vision', 'Web UI'],
-    source: 'https://github.com/ivanaitzliddat/framevigil', theme: 'vision', status: 'Hardware test pending',
+    id: 'phish-signal-lab', number: '01', title: 'Phish Signal Lab', label: 'Security + machine learning',
+    category: ['Security', 'AI'], theme: 'signal', status: 'Evaluation study',
+    question: 'A strong phishing benchmark. But what is it actually learning?',
+    summary: 'A URL-classification experiment that treats dataset shortcuts, split design, and alert thresholds as part of the engineering problem.',
+    contribution: 'Built a public evaluation pipeline with dataset checks, hostname features, model comparison, and validation-selected alert thresholds.',
+    decisions: [
+      'Remove duplicate URLs and conflicting labels; split by exact hostname so the same host cannot appear in different partitions.',
+      'Restrict the main experiment to HTTPS site roots and hostname-only features to reduce an obvious collection shortcut.',
+      'Select the model and alert threshold using validation data, then evaluate the held-out test set.',
+    ],
+    evidence: 'The repository contains the evaluation pipeline, dataset checks, and tests for splitting and threshold selection. Its README reports a matched-cohort average precision of 0.935 versus a 0.171 prior baseline (seed 42). Those saved claims have not been independently reproduced for this portfolio.',
+    limitation: 'The validation precision target did not hold on the test set. There is no temporal holdout, and related domains or different deployment prevalence may affect performance. This is a dataset study, not a live phishing-detection service.',
+    next: 'Preserve and reproduce the full evaluation artifacts; add multi-seed and temporal validation.',
+    technologies: ['Python', 'scikit-learn', 'Grouped evaluation', 'Dataset audit'],
+    source: 'https://github.com/ivanaitzliddat/phish-signal-lab',
+    evidenceSource: 'https://github.com/ivanaitzliddat/phish-signal-lab/blob/main/src/phish_signal_lab/evaluate.py',
   },
   {
-    id: 'phish-signal-lab', number: '02', title: 'Phish Signal Lab', kicker: 'Security ML',
-    category: ['Security', 'AI'],
-    summary: 'A reproducible phishing-URL evaluation project built around dataset checks and honest model comparison.',
-    detail: 'The project audits collection artifacts, extracts hostname features, compares two models, and evaluates once on a held-out test set. Its README explains why strong benchmark scores can still be misleading when the data collection process leaks a shortcut.',
-    contribution: 'Independent public project focused on model evaluation and reproducibility.',
-    technologies: ['Python', 'Machine learning', 'Dataset audit', 'Evaluation'],
-    source: 'https://github.com/ivanaitzliddat/phish-signal-lab', theme: 'signal',
+    id: 'framevigil', number: '02', title: 'FrameVigil', label: 'Computer vision + operations',
+    category: ['AI', 'Engineering'], theme: 'vision', status: 'Local prototype',
+    question: 'What if the signal is visible on a screen, but there is no API?',
+    summary: 'Local OCR monitoring that turns a camera or capture-card feed into evidence an operator can inspect and acknowledge.',
+    contribution: 'Built a public visual-monitoring reimplementation with capture workers, OCR conditions, reviewable evidence, and source-specific acknowledgement.',
+    decisions: [
+      'Run OCR locally and retain captured frames in bounded memory instead of writing monitoring images or OCR text to disk.',
+      'Make matches inspectable through word locations, and scope acknowledgements to a source with an expiry.',
+      'Default to loopback access; require a bearer token for a non-loopback listener and validate browser origins.',
+    ],
+    evidence: 'The public repository includes a synthetic status-board source, server and capture tests, and documented camera/capture-card setup. Nine server-only tests passed during local review; the full suite could not run because Pillow was missing. The synthetic source demonstrates the workflow, not real-world OCR performance.',
+    limitation: 'Device compatibility, permissions, OCR accuracy, and alert latency depend on the deployment. There are no published hardware benchmarks or production-availability measurements.',
+    next: 'Measure device-specific OCR accuracy and end-to-end latency; add repeatable CI.',
+    technologies: ['Python', 'Tesseract OCR', 'FFmpeg', 'Browser UI'],
+    source: 'https://github.com/ivanaitzliddat/framevigil',
+    evidenceSource: 'https://github.com/ivanaitzliddat/framevigil/tree/main/tests',
   },
   {
-    id: 'miles', number: '03', title: 'Miles Tracker', kicker: 'AI-assisted product',
-    category: ['AI', 'Product'],
-    summary: 'A Telegram Mini App prototype for tracking card miles, spending caps, and researched rate changes.',
-    detail: 'A React frontend, Express API, Prisma data model, calculation engine, Telegram bot, and Claude-assisted research flow form the prototype. Suggested rate changes enter an administrator review queue. Seed card terms are historical, and the current cap estimates are conservative; both require verification before use.',
-    contribution: 'Full-stack application with reviewable AI suggestions and tested calculation logic.',
-    technologies: ['React', 'TypeScript', 'Prisma', 'Telegram', 'Claude API'],
-    source: 'https://github.com/ivanaitzliddat/miles', theme: 'miles', status: 'Prototype · no live service',
-  },
-  {
-    id: 'real-assets-personality-quiz', number: '04', title: 'Real Assets Quiz', kicker: 'Interactive experience',
-    category: ['Product'],
-    summary: 'A responsive educational quiz with configurable content, weighted scoring, and four result experiences.',
-    detail: 'The quiz separates editorial content from scoring logic and includes accessibility, deterministic tie handling, tests, and a static Pages deployment. Its financial-services copy is provisional; it is not a suitability or investment assessment.',
-    contribution: 'Configurable React experience with isolated and tested scoring rules.',
-    technologies: ['React', 'TypeScript', 'Vite', 'Testing'],
-    source: 'https://github.com/ivanaitzliddat/real-assets-personality-quiz',
-    demo: 'https://ivanaitzliddat.github.io/real-assets-personality-quiz/', theme: 'quiz', status: 'Provisional content',
-  },
-  {
-    id: 'apex-games', number: '05', title: 'APEX Games', kicker: 'Real-time multiplayer',
-    category: ['Product'],
-    summary: 'A Telegram-connected multiplayer card-game prototype with rooms, WebSockets, and a browser interface.',
-    detail: 'The application pairs a FastAPI service and game-state engine with a web interface and Telegram bot. The implemented Ride the Bus game uses a four-phase guessing flow. It is a software prototype, not a hosted game service.',
-    contribution: 'Multiplayer application design across the browser, API, and bot.',
-    technologies: ['Python', 'FastAPI', 'WebSockets', 'Telegram'],
-    source: 'https://github.com/ivanaitzliddat/APEX-Games', theme: 'games', status: 'Prototype',
-  },
-  {
-    id: 'frienzen', number: '06', title: 'FrienZen', kicker: 'Group planning',
-    category: ['Product'],
-    summary: 'A Telegram Mini App prototype for planning group activities and splitting shared expenses.',
-    detail: 'The Next.js project combines Telegram context, activity planning, expenses, itinerary items, and settlement data in a Prisma-backed application. It is presented as an in-progress prototype rather than a live service.',
-    contribution: 'Full-stack group-planning interface and data model.',
-    technologies: ['Next.js', 'TypeScript', 'Prisma', 'Telegram'],
-    source: 'https://github.com/ivanaitzliddat/frienzen', theme: 'travel', status: 'In progress',
+    id: 'miles', number: '03', title: 'Miles Tracker', label: 'AI-assisted workflow + full stack',
+    category: ['AI', 'Engineering'], theme: 'review', status: 'Application prototype',
+    question: 'AI can propose a change. Who should be allowed to approve it?',
+    summary: 'An AI-assisted card-research workflow where structured suggestions enter a human review queue, not the live catalog.',
+    contribution: 'Built a full-stack Telegram Mini App prototype with research drafts, administrator review, ownership checks, and deterministic calculation logic.',
+    decisions: [
+      'Keep AI-proposed rate changes pending for administrator approval; claim the pending change and write the update and history transactionally.',
+      'Verify Telegram initData signatures in production and enforce per-user ownership on API access.',
+      'Separate deterministic spending calculations from AI research so core rules can be tested independently.',
+    ],
+    evidence: 'The public source includes calculation, authorization, and review-flow tests. The research agent uses structured output validation, and catalog updates have an explicit review path.',
+    limitation: 'This prototype still needs calculation-correctness work: a best-rate fallback can return an excluded or ineligible rate, and spending is counted against every cap rather than eligible cap buckets. AI extraction accuracy is not measured; live integrations, historical seed terms, and unfinished activation flows also need validation.',
+    next: 'Prioritize regression tests and fixes for rate eligibility and spending-cap allocation, then evaluate AI extraction and complete live review flows.',
+    technologies: ['TypeScript', 'React', 'Express', 'Prisma', 'Claude API'],
+    source: 'https://github.com/ivanaitzliddat/miles',
+    evidenceSource: 'https://github.com/ivanaitzliddat/miles/blob/main/packages/backend/src/services/cardResearchAgent.ts',
   },
 ]
+
+export const supportingProjects = [
+  { title: 'FrienZen', description: 'Signed Telegram sessions, group planning, and shared-expense workflows.', source: 'https://github.com/ivanaitzliddat/frienzen', status: 'In progress', tags: 'Full-stack / access control' },
+  { title: 'Real Assets Quiz', description: 'Configurable scoring rules, accessible interfaces, and exhaustive answer-combination tests.', source: 'https://github.com/ivanaitzliddat/real-assets-personality-quiz', status: 'Web prototype', tags: 'Testing / interface design' },
+  { title: 'APEX Games', description: 'Multiplayer game state across browser, API, and bot using WebSockets.', source: 'https://github.com/ivanaitzliddat/APEX-Games', status: 'Prototype', tags: 'Real-time / state management' },
+]
+
+export const experience = [
+  { period: 'Jan 2027', title: 'AI Engineer', organization: 'Upcoming role', upcoming: true, description: 'Moving into AI engineering, building on a foundation in cybersecurity, network operations, and applied software development.' },
+  { period: 'Jun 2024 - present', title: 'Network Lead', organization: 'Network operations', upcoming: false, description: 'Network operations and workflow engineering, including request coordination and visual-monitoring tools. Planned transition in January 2027.' },
+  { period: 'Mar 2026 - present', title: 'Cybersecurity Engineer', organization: 'Concurrent role', upcoming: false, description: 'Security hardening and cybersecurity learning initiatives, alongside my Network Lead responsibilities. Planned end: December 2026.' },
+  { period: 'Jan - May 2024', title: 'Cybersecurity Engineer Intern', organization: 'GovTech Singapore', upcoming: false, description: 'IoT security testing, network traffic analysis, firmware reverse engineering, and a remote device-testing harness integrating hardware and software.' },
+  { period: 'May - Oct 2022', title: 'Information Security Intern', organization: 'Singapore Airlines / Scoot', upcoming: false, description: 'Security dashboards, phishing awareness, endpoint and email security, Splunk rules, and incident-response procedures.' },
+]
+
