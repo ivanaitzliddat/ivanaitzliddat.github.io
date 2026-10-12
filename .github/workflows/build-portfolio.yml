@@ -46,7 +46,7 @@ jobs:
               entry.isDirectory() ? files(path.join(dir, entry.name)) : [path.join(dir, entry.name)]);
           }
           const output = files('docs');
-          if (output.some(file => !/\.(html|js|css)$/.test(file))) throw new Error('Unexpected public asset');
+          if (output.some(file => file !== 'docs/.nojekyll' && !/\.(html|js|css)$/.test(file))) throw new Error('Unexpected public asset');
           const text = output.map(file => fs.readFileSync(file, 'utf8')).join('\n');
           if (!text.includes('Understand the threat.')) throw new Error('Expected redesigned content is missing');
           if (/ADAM|Ticketing Hub|STANDCON|ExzenHQ|cydef|raid-ppcoe|202-innovation/i.test(text)) throw new Error('Uncleared project identifier in public output');
