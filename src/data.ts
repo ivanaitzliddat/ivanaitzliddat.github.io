@@ -50,7 +50,7 @@ export const projects: Project[] = [
       'Make matches inspectable through word locations, and scope acknowledgements to a source with an expiry.',
       'Default to loopback access; require a bearer token for a non-loopback listener and validate browser origins.',
     ],
-    evidence: 'The public repository includes a synthetic status-board source, server and capture tests, and documented camera/capture-card setup. Nine server-only tests passed during local review; the full suite could not run because Pillow was missing. The synthetic source demonstrates the workflow, not real-world OCR performance.',
+    evidence: 'The public repository includes a synthetic status-board source, server and capture tests, and documented camera/capture-card setup. The synthetic source demonstrates the workflow, not real-world OCR performance.',
     limitation: 'Device compatibility, permissions, OCR accuracy, and alert latency depend on the deployment. There are no published hardware benchmarks or production-availability measurements.',
     next: 'Measure device-specific OCR accuracy and end-to-end latency; add repeatable CI.',
     technologies: ['Python', 'Tesseract OCR', 'FFmpeg', 'Browser UI'],
@@ -84,9 +84,8 @@ export const supportingProjects = [
 ]
 
 export const experience = [
-  { period: 'Jan 2027', title: 'AI Engineer', organization: 'Upcoming role', upcoming: true, description: 'Moving into AI engineering, building on a foundation in cybersecurity, network operations, and applied software development.' },
-  { period: 'Jun 2024 - present', title: 'Network Lead', organization: 'Network operations', upcoming: false, description: 'Network operations and workflow engineering, including request coordination and visual-monitoring tools. Planned transition in January 2027.' },
-  { period: 'Mar 2026 - present', title: 'Cybersecurity Engineer', organization: 'Concurrent role', upcoming: false, description: 'Security hardening and cybersecurity learning initiatives, alongside my Network Lead responsibilities. Planned end: December 2026.' },
-  { period: 'Jan - May 2024', title: 'Cybersecurity Engineer Intern', organization: 'GovTech Singapore', upcoming: false, description: 'IoT security testing, network traffic analysis, firmware reverse engineering, and a remote device-testing harness integrating hardware and software.' },
-  { period: 'May - Oct 2022', title: 'Information Security Intern', organization: 'Singapore Airlines / Scoot', upcoming: false, description: 'Security dashboards, phishing awareness, endpoint and email security, Splunk rules, and incident-response procedures.' },
+  { period: 'Next chapter', title: 'AI Engineer', organization: 'AI Centre · planned transition', upcoming: true, description: 'Moving into AI engineering, building on a foundation in cybersecurity, network operations, and applied software development.' },
+  { period: 'Jun 2024 – present', title: 'Network Lead', organization: 'MINDEF / RSAF', upcoming: false, description: 'Leading in a Network Operations Centre. Appointed as a Senior Air Operations & Systems Expert, with a focus on network operations and practical engineering.' },
+  { period: 'Jan – May 2024', title: 'Cybersecurity Engineer Intern', organization: 'GovTech Singapore', upcoming: false, description: 'IoT security testing, network traffic analysis, firmware reverse engineering, and a remote device-testing harness integrating hardware and software.' },
+  { period: 'May – Oct 2022', title: 'Information Security Intern', organization: 'Singapore Airlines / Scoot', upcoming: false, description: 'Security dashboards, phishing awareness, endpoint and email security, Splunk rules, and incident-response procedures.' },
 ]
